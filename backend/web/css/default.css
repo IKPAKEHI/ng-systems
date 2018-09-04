@@ -179,3 +179,25 @@ a.button.big {
  font-size: 8pt;
   color: #d7e4ea;
 }
+
+#preview {
+  max-width: 1400px;
+  max-height: 800px;
+  display: flex;
+  background-color: #ff0;
+  min-height: 300px;
+  min-width: 300px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}  
+#block_resize {
+  background-color: #000;
+  bottom: 0;
+  cursor: se-resize;
+  height: 30px;
+  margin-top: 0px;
+  /*position: absolute;*/
+  margin-left: 300px;
+  width: 30px;
+}

@@ -21,6 +21,7 @@ class AppAsset extends AssetBundle
         'js/jquery.Jcrop.min.js',
         //'js/jquery.min.js',
         'js/script.js',
+        'js/resize.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',

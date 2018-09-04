@@ -36,7 +36,7 @@ class Goods extends ActiveRecord
         return [
             [['name', 'price', 'description', 'categories'], 'required'],
             [['name'], 'string', 'max' => 50],
-            [['price'], 'string', 'max' => 10],
+            [['price'], 'integer', 'min' => 1, 'max' => 100000],
             [['description', 'img'], 'string', 'max' => 255],
         ];
     }
@@ -51,26 +51,36 @@ class Goods extends ActiveRecord
             'name' => 'Имя',
             'price' => 'Цена',
             'description' => 'Описание',
-            'img' => 'Введите урл картинки',
+            'img' => 'Картинка',
             'categories' => 'Категории',
         ];
     }
+
+    public function imageresize($outfile,$infile,$neww,$newh,$quality) {
+        $vDstImg= @imagecreatetruecolor($neww,$newh);
+        imagecopyresampled($vDstImg,$infile,0,0,0,0,$neww,$newh,imagesx($infile),imagesy($infile));
+        return ($vDstImg);
+    }
+
+
     public function upload()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $iWidth = $iHeight = 200; // desired image result dimensions
+            $iWidth = $iHeight = 300; // desired image result dimensions
             $iJpgQuality = 90;
             if ($_FILES && isset($_FILES['image_file'])) {
                 // if no errors and size less than 250kb
                 if (! $_FILES['image_file']['error'] && $_FILES['image_file']['size'] < 250 * 1024) {
                     if (is_uploaded_file($_FILES['image_file']['tmp_name'])) {
                         // new unique filename
-                        $sTempFileName = 'uploads/' . md5(time().rand());
-                        $this->img = $sTempFileName;
+                        $sTempFileName = '../../frontend/web/uploads/' . md5(time().rand());
+                        $this->img = str_replace('../../frontend/web/','', $sTempFileName) . '.jpg';
                         // move uploaded file into cache folder
                         move_uploaded_file($_FILES['image_file']['tmp_name'], $sTempFileName);
                         // change file permission to 644
                         @chmod($sTempFileName, 0644);
+                        echo "<br><br><br>";
+                        var_dump($_POST);
                         if (file_exists($sTempFileName) && filesize($sTempFileName) > 0) {
                             $aSize = getimagesize($sTempFileName); // try to obtain image info
                             if (!$aSize) {
@@ -90,6 +100,7 @@ class Goods extends ActiveRecord
                                     @unlink($sTempFileName);
                                     return;
                             }
+                            $vImg = Goods::imageresize("uploads/qwe.jpg",$vImg , intval($_POST['img_width']), intval($_POST['img_height']), 75);
                             // create a new true color image
                             $vDstImg = @imagecreatetruecolor( $iWidth, $iHeight );
                             // copy and resize part of an image with resampling
@@ -106,11 +117,14 @@ class Goods extends ActiveRecord
             }
         }
     }
-
     public function add_good_to_categories()
     {
         $model = Categories_goods::find()->all();
-
-        var_dump($model['0']['good_id']);
+        $values_arr = array();
+        $values_arr[] = ['1', $this['id']];
+        foreach ($_POST['Goods']['categories'] as $categorie) {
+            $values_arr[] = [$categorie, $this['id']];
+        }
+        Yii::$app->db->createCommand()->batchInsert('categories_goods', ['categorie_id','good_id'], $values_arr)->execute();
     }
 }

@@ -10,6 +10,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\UploadedFile;
+use backend\models\Categories_goods;
 
 /**
  * GoodsController implements the CRUD actions for Goods model.
@@ -67,19 +68,14 @@ class GoodsController extends Controller
     public function actionCreate()
     {
         $model = new Goods();
-        $all_categs_query = Categories::find();
-        $add_to_categorie = $all_categs_query
-        ->select('name')
-        ->where(['not like', 'id', ['1']])
-        ->column();
-        var_dump("asd");
+        $add_to_categorie = Categories::listCategories();
         if (Yii::$app->request->isPost) {
             $model->upload();
-            $model->add_good_to_categories();
         }
-        // if ($model->load(Yii::$app->request->post()) && $model->save()) {
-        //         return $this->redirect(['view', 'id' => $model->id]);
-        // }
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            $model->add_good_to_categories();
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
         return $this->render('create', [
             'model' => $model,
             'add_to_categorie' => $add_to_categorie,
@@ -96,13 +92,13 @@ class GoodsController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
+        $add_to_categorie = Categories::listCategories();
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
-
         return $this->render('update', [
             'model' => $model,
+            'add_to_categorie' => $add_to_categorie,
         ]);
     }
 
@@ -115,8 +111,13 @@ class GoodsController extends Controller
      */
     public function actionDelete($id)
     {
+        Categories_goods::deleteAll("good_id = {$id}");
+        $img_path = Goods::find('img')
+        ->where(['id' => $id])
+        ->all();
+        if (file_exists("../../frontend/web/" . $img_path[0]['img']))
+            unlink("../../frontend/web/" . $img_path[0]['img']);
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
 

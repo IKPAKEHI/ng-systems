@@ -41,4 +41,24 @@ class Categories extends \yii\db\ActiveRecord
             'name' => 'Name',
         ];
     }
+
+    public function listCategories()
+    {
+        $all_categs_query = Categories::find();
+        $ids = $all_categs_query
+        ->select('id')
+        ->where(['not like', 'id', ['1']])
+        ->column();
+        $names = $all_categs_query
+        ->select('name')
+        ->where(['not like', 'id', ['1']])
+        ->column();
+
+        $add_to_categorie = array();
+        $i = 0;
+        foreach ($ids as $id) {
+            $add_to_categorie["$id"] = $names[$i++];
+        }
+        return $add_to_categorie;
+    }
 }
